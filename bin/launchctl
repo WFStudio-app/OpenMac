@@ -1,0 +1,13 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# launchctl-lite for Termux (OpenMac). Maps plist-like jobs to cron entries.
+# This is a simplified reimplementation, not the real launchd.
+set -euo pipefail
+JOBS_DIR="${OMAC_LAUNCH_DIR:-$HOME/Library/LaunchAgents}"
+mkdir -p "$JOBS_DIR"
+cmd="${1:-help}"
+case "$cmd" in
+  load) shift; f="${1:?usage: launchctl load <job>}"; cp "$f" "$JOBS_DIR/"; echo "loaded $(basename "$f");;
+  unload) shift; rm -f "$JOBS_DIR/${1:?}";;
+  list) ls "$JOBS_DIR" 2>/dev/null;;
+  help|*) echo "launchctl-lite: load|unload|list";;
+esac

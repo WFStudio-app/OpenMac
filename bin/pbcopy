@@ -1,0 +1,8 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# pbcopy - copy stdin to Android clipboard via termux-api (reimplementation of macOS tool)
+if command -v termux-clipboard-set >/dev/null 2>&1; then
+  termux-clipboard-set "$(cat)"
+else
+  echo "pbcopy: requires termux-api. Run: pkg install termux-api" >&2
+  exit 1
+fi

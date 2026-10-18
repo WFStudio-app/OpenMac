@@ -1,0 +1,31 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# defaults - emulate macOS `defaults` using JSON files in ~/Library/Preferences
+# Rewritten for Termux. Storage: $HOME/Library/Preferences/<domain>.json
+set -euo pipefail
+PREF_DIR="${OMAC_PREF_DIR:-$HOME/Library/Preferences}"
+mkdir -p "$PREF_DIR"
+
+json_get() { python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get(sys.argv[2],''))" "$1" "$2"; }
+json_set() { python3 -c "
+import json,sys
+p,k,v=sys.argv[1],sys.argv[2],sys.argv[3]
+d={}
+try: d=json.load(open(p))
+except: pass
+d[k]=v
+json.dump(d,open(p,'w'),indent=2)
+" "$1" "$2" "$3"; }
+
+cmd="${1:?usage: defaults read|write|delete <domain> [key] [value]}"
+domain="${2:?missing domain}"; key="${3:-}"; val="${4:-}"
+file="$PREF_DIR/$domain.json"
+case "$cmd" in
+  read)   [[ -f "$file" ]] && json_get "$file" "$key" || echo "";;
+  write)  json_set "$file" "$key" "$val";;
+  delete) python3 -c "
+import json,sys
+p,k=sys.argv[1],sys.argv[2]
+d=json.load(open(p)); d.pop(k,None); json.dump(d,open(p,'w'),indent=2)
+" "$file" "$key";;
+  *) echo "Unknown subcommand: $cmd" >&2; exit 1;;
+esac

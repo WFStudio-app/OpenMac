@@ -1,0 +1,10 @@
+# Termux / OpenMac artifacts
+*.log
+*.swp
+.DS_Store
+node_modules/
+__pycache__/
+*.pyc
+.cache/
+tmp/
+.omac-cache/

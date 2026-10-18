@@ -1,0 +1,8 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# pbpaste - paste Android clipboard to stdout via termux-api
+if command -v termux-clipboard-get >/dev/null 2>&1; then
+  termux-clipboard-get
+else
+  echo "pbpaste: requires termux-api. Run: pkg install termux-api" >&2
+  exit 1
+fi

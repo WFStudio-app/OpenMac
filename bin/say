@@ -1,0 +1,11 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# say - macOS-style text to speech for Termux (rewritten, uses termux-tts-speak)
+# Original macOS `say` is proprietary; this is an independent reimplementation.
+TEXT="$*"
+[[ -z "$TEXT" ]] && TEXT=$(cat)
+if command -v termux-tts-speak >/dev/null 2>&1; then
+  echo "$TEXT" | termux-tts-speak
+else
+  echo "say: termux-api not installed. Run: pkg install termux-api" >&2
+  exit 1
+fi

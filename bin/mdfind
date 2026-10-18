@@ -1,0 +1,13 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# mdfind - Spotlight-like search for Termux. Rewritten using find + grep.
+# Usage: mdfind [-onlyin DIR] "query"
+ONLYIN="$HOME"
+QUERY=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -onlyin) ONLYIN="$2"; shift 2;;
+    *) QUERY="$1"; shift;;
+  esac
+done
+[[ -z "$QUERY" ]] && { echo "mdfind: missing query" >&2; exit 1; }
+find "$ONLYIN" -iname "*${QUERY}*" 2>/dev/null

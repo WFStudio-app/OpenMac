@@ -1,0 +1,102 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# omac - OpenMac package manager ( rewritten for Termux )
+# Inspired by Homebrew CLI, but uses Termux pkg/apt under the hood.
+# License: MIT (OpenMac). Original brew ideas: BSD-2 (Homebrew team).
+set -euo pipefail
+
+OMAC_VERSION="0.1.0"
+OMAC_ROOT="${OMAC_ROOT:-$HOME/.omac}"
+OMAC_DB="$OMAC_ROOT/db"
+FORMULAS_DIR="$(dirname "$OMAC_ROOT")/$(basename "$0")/../packages"  # repo packages dir fallback
+FORMULAS_DIR="${OPENMAC_PACKAGES:-$OMAC_ROOT/packages}"
+
+usage() {
+  cat <<EOF
+omac $OMAC_VERSION - OpenMac package manager (Termux edition)
+
+Usage:
+  omac install <formula>   Install a formula (maps to Termux pkg)
+  omac uninstall <name>    Remove a package
+  omac list                List installed via omac
+  omac search <query>      Search available formulas
+  omac info <formula>      Show formula metadata
+  omac update              Refresh formula index
+  omac --version           Print version
+  omac help                This message
+EOF
+}
+
+ensure_dirs() {
+  mkdir -p "$OMAC_DB" "$FORMULAS_DIR" "$OMAC_ROOT/logs"
+}
+
+cmd_install() {
+  ensure_dirs
+  local name="${1:?omac install: missing formula name}"
+  local formula="$FORMULAS_DIR/$name.sh"
+  if [[ -f "$formula" ]]; then
+    echo "==> Installing '$name' from local formula..."
+    bash "$formula" install
+  else
+    echo "==> No local formula found, falling back to Termux pkg install '$name'..."
+    pkg install -y "$name"
+  fi
+  echo "$name $(date -Iseconds)" >> "$OMAC_DB/installed.list"
+  echo "==> Done."
+}
+
+cmd_uninstall() {
+  local name="${1:?omac uninstall: missing package name}"
+  pkg uninstall -y "$name" || true
+  grep -v "^$name " "$OMAC_DB/installed.list" > "$OMAC_DB/installed.tmp" 2>/dev/null || true
+  mv -f "$OMAC_DB/installed.tmp" "$OMAC_DB/installed.list" 2>/dev/null || true
+}
+
+cmd_list() {
+  ensure_dirs
+  if [[ -s "$OMAC_DB/installed.list" ]]; then
+    cat "$OMAC_DB/installed.list"
+  else
+    echo "(no packages installed via omac yet)"
+  fi
+}
+
+cmd_search() {
+  local q="${1:-}"
+  ls "$FORMULAS_DIR" 2>/dev/null | sed 's/\.sh$//' | grep -i -- "$q" || echo "No formulas match '$q'."
+}
+
+cmd_info() {
+  local name="${1:?omac info: missing formula}"
+  local f="$FORMULAS_DIR/$name.sh"
+  if [[ -f "$f" ]]; then
+    head -n 30 "$f"
+  else
+    echo "Formula '$name' not found in $FORMULAS_DIR"
+  fi
+}
+
+cmd_update() {
+  echo "==> Updating formula index (git pull of OpenMac packages)..."
+  if [[ -d "$OPENMAC_REPO/.git" ]]; then
+    git -C "$OPENMAC_REPO" pull --ff-only || echo "update: git pull failed (offline?)"
+  else
+    echo "Set OPENMAC_REPO to your cloned OpenMac directory to enable self-update."
+  fi
+}
+
+main() {
+  case "${1:-help}" in
+    install) shift; cmd_install "$@";;
+    uninstall) shift; cmd_uninstall "$@";;
+    list) shift; cmd_list "$@";;
+    search) shift; cmd_search "$@";;
+    info) shift; cmd_info "$@";;
+    update) shift; cmd_update "$@";;
+    --version|version) echo "omac $OMAC_VERSION";;
+    help|--help|-h) usage;;
+    *) echo "Unknown command: $1" >&2; usage; exit 1;;
+  esac
+}
+
+main "$@"
