@@ -1,6 +1,6 @@
 /*
  * mach_shim.c — userspace Mach-style API implemented over Linux/Android.
- * Original OpenMac code (MIT). No XNU source is used or derived from.
+ * Original OpenMac code, proprietary (see LICENSE). No XNU source is used or derived from.
  */
 #include "mach.h"
 #include <stdio.h>

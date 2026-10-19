@@ -1,6 +1,6 @@
 /*
  * kern_osmacro.c — "kernel-style" macro/version layer for the OpenMac shim.
- * Original MIT code; emulates Darwin version reporting over Android/Linux.
+ * Proprietary code (see LICENSE); emulates Darwin version reporting over Android/Linux.
  */
 #include <stdio.h>
 #include <string.h>

@@ -8,7 +8,7 @@
  * darwin-xnu sources; only the public API shape is reproduced for
  * interoperability, which is not copyrightable expression.
  *
- * Licensing: original OpenMac code is MIT (see LICENSE). If you later link
+ * Licensing: original OpenMac code is proprietary (see LICENSE). If you later link
  * against actual APSL-covered Darwin sources, LICENSE.APSL applies to them.
  */
 #ifndef _OPENMACH_MACH_H
