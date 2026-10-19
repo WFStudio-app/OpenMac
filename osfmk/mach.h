@@ -48,4 +48,14 @@ kern_return_t omach_vm_allocate(mach_port_t target, uint64_t *addr,
 kern_return_t omach_task_for_pid(mach_port_t host, int32_t pid,
                                  mach_port_t *task);
 
+/* ---- Mach-style IPC over UNIX domain sockets (mach_ipc.c) ---- */
+#include <stddef.h>
+kern_return_t omach_port_allocate(mach_port_t *name);
+kern_return_t omach_port_connect(mach_port_t name, const char *target_path);
+const char   *omach_port_path(mach_port_t name);
+kern_return_t omach_msg_send(mach_port_t name, const void *buf, size_t len);
+kern_return_t omach_msg_recv(mach_port_t name, void *buf, size_t maxlen,
+                             size_t *out_len);
+kern_return_t omach_port_deallocate(mach_port_t name);
+
 #endif /* _OPENMACH_MACH_H */

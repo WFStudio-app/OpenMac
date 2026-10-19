@@ -9,3 +9,7 @@ __pycache__/
 tmp/
 .omac-cache/
 libopenmach.so
+
+# build artifacts
+osfmk/*.o
+osfmk/test_mach

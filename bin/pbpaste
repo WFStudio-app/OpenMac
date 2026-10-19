@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
 # pbpaste - paste Android clipboard to stdout via termux-api
 if command -v termux-clipboard-get >/dev/null 2>&1; then
   termux-clipboard-get

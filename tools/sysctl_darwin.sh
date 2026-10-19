@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
 # sysctl(8)-compatible frontend over Linux /proc — original OpenMac shim.
 # Mimics Darwin MIB names: kern.osproductversion, hw.memsize, hw.ncpu, etc.
 set -euo pipefail

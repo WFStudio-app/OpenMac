@@ -15,8 +15,18 @@
   справки и покроет любые будущие изменения, которые реально будут использовать
   APSL-код Apple. Текущий код репозитория — оригинальный, под проприетарной лицензией OpenMac.
 
+## Компоненты
+- `mach.h` / `mach_shim.c` — host_info, vm_allocate, task_for_pid (поверх sysinfo/mmap/kill).
+- `mach_ipc.c` — Mach-port-стиль IPC поверх UNIX domain сокетов
+  (`port_allocate/connect`, `msg_send/recv`, каталог `$OMAC_IPC_DIR`).
+- `bsd/kern_osmacro.c` — отчёт о версии в стиле Darwin (бэкенд `sw_vers`).
+- `tests/test_mach.c` — смоук-тест библиотеки.
+
 ## Сборка и проверка
 ```sh
-gcc -shared -fPIC osfmk/mach_shim.c -o libopenmach.so
-tools/sysctl_darwin.sh -a   # darwin-style sysctl поверх /proc
+make -C osfmk all      # -> osfmk/libopenmach.so
+make -C osfmk test     # сборка + смоук-тест (host_info, vm_allocate, IPC roundtrip)
+make -C osfmk install  # в ~/.omac/lib + ~/.omac/include
+../tools/sysctl_darwin.sh -a   # darwin-style sysctl поверх /proc
+../tools/sw_vers_darwin.sh     # sw_vers-совместимый вывод
 ```

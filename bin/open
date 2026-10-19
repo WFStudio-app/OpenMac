@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
 # open - macOS-style file/URL opener for Termux (uses termux-open)
 TARGET="${1:?usage: open <file|url>}"
 if command -v termux-open >/dev/null 2>&1; then

@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
 # mdfind - Spotlight-like search for Termux. Rewritten using find + grep.
 # Usage: mdfind [-onlyin DIR] "query"
 ONLYIN="$HOME"

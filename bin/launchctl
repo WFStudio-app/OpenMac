@@ -1,13 +1,83 @@
-#!/data/data/com.termux/files/usr/bin/bash
-# launchctl-lite for Termux (OpenMac). Maps plist-like jobs to cron entries.
-# This is a simplified reimplementation, not the real launchd.
+#!/usr/bin/env bash
+# launchctl-lite for Termux (OpenMac). Original reimplementation — not real launchd.
+# Jobs are simple key=value files (plist-inspired) in $OMAC_LAUNCH_DIR.
+# Supports: load | unload | list | start <label> | stop <label> | run
 set -euo pipefail
+
 JOBS_DIR="${OMAC_LAUNCH_DIR:-$HOME/Library/LaunchAgents}"
-mkdir -p "$JOBS_DIR"
-cmd="${1:-help}"
-case "$cmd" in
-  load) shift; f="${1:?usage: launchctl load <job>}"; cp "$f" "$JOBS_DIR/"; echo "loaded $(basename "$f");;
-  unload) shift; rm -f "$JOBS_DIR/${1:?}";;
-  list) ls "$JOBS_DIR" 2>/dev/null;;
-  help|*) echo "launchctl-lite: load|unload|list";;
+STATE_DIR="${OMAC_LAUNCH_STATE:-$HOME/.omac/launchd}"
+RUN_DIR="$STATE_DIR/running"
+mkdir -p "$JOBS_DIR" "$RUN_DIR"
+
+job_field() { # job_field <file> <key>
+  sed -n "s/^${2}[[:space:]]*=[[:space:]]*//p" "$1" | head -1
+}
+
+cmd_load() {
+  local f="${1:?usage: launchctl load <job-file>}"
+  [[ -f "$f" ]] || { echo "launchctl: no such file: $f" >&2; exit 1; }
+  cp "$f" "$JOBS_DIR/"
+  echo "loaded $(basename "$f")"
+}
+
+cmd_unload() {
+  local name="${1:?usage: launchctl unload <label>}"
+  rm -f "$JOBS_DIR/$name" "$RUN_DIR/$name"
+  echo "unloaded $name"
+}
+
+cmd_list() {
+  for j in "$JOBS_DIR"/*; do
+    [[ -e "$j" ]] || continue
+    local label running="stopped"
+    label="$(basename "$j")"
+    [[ -f "$RUN_DIR/$label" ]] && running="running (pid $(cat "$RUN_DIR/$label"))"
+    printf '%-30s %s\n' "$label" "$running"
+  done
+}
+
+cmd_start() {
+  local label="${1:?usage: launchctl start <label>}"
+  local job="$JOBS_DIR/$label"
+  [[ -f "$job" ]] || { echo "launchctl: unknown job: $label" >&2; exit 1; }
+  local prog args
+  prog="$(job_field "$job" Program)"
+  args="$(job_field "$job" ProgramArguments)"
+  [[ -n "$prog" ]] || { echo "launchctl: job has no Program= line" >&2; exit 1; }
+  # shellcheck disable=SC2086
+  nohup $prog $args >/dev/null 2>&1 &
+  echo $! > "$RUN_DIR/$label"
+  echo "started $label (pid $!)"
+}
+
+cmd_stop() {
+  local label="${1:?usage: launchctl stop <label>}"
+  if [[ -f "$RUN_DIR/$label" ]]; then
+    kill "$(cat "$RUN_DIR/$label")" 2>/dev/null || true
+    rm -f "$RUN_DIR/$label"
+    echo "stopped $label"
+  else
+    echo "launchctl: $label is not running" >&2
+    exit 1
+  fi
+}
+
+cmd_run() { # run all jobs marked KeepAlive=yes (boot-like pass)
+  for j in "$JOBS_DIR"/*; do
+    [[ -e "$j" ]] || continue
+    [[ "$(job_field "$j" KeepAlive)" == "yes" ]] || continue
+    local label; label="$(basename "$j")"
+    [[ -f "$RUN_DIR/$label" ]] && continue
+    cmd_start "$label"
+  done
+}
+
+case "${1:-help}" in
+  load)   shift; cmd_load "$@";;
+  unload) shift; cmd_unload "$@";;
+  list)   cmd_list;;
+  start)  shift; cmd_start "$@";;
+  stop)   shift; cmd_stop "$@";;
+  run)    cmd_run;;
+  help|*) echo "launchctl-lite: load|unload|list|start|stop|run";;
 esac

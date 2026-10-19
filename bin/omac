@@ -1,7 +1,7 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
 # omac - OpenMac package manager ( rewritten for Termux )
 # Inspired by Homebrew CLI, but uses Termux pkg/apt under the hood.
-# License: MIT (OpenMac). Original brew ideas: BSD-2 (Homebrew team).
+# License: proprietary (see LICENSE). Original brew ideas: BSD-2 (Homebrew team).
 set -euo pipefail
 
 OMAC_VERSION="0.1.0"
