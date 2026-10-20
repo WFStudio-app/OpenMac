@@ -13,6 +13,7 @@
 #include <sstream>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace omac { namespace iokit {
 
@@ -92,15 +93,45 @@ public:
             }
             closedir(d);
         }
+        /* Platform features -> IOPPlatform (Android/Termux flavour) */
+        {
+            RegistryEntry en;
+            en.className = "IOPPlatform";
+            en.identifier = "openmac-shim";
+            en.path = "/proc";
+            en.props["machine"]   = readFile("/proc/sys/kernel/ostype") + "-" +
+                                    readFile("/proc/sys/kernel/osrelease");
+            en.props["hostname"]  = readFile("/proc/sys/kernel/hostname");
+            en.props["pagesize"]  = std::to_string(sysconf(_SC_PAGESIZE));
+            r.entries_.push_back(std::move(en));
+        }
         return r;
     }
 
     const std::vector<RegistryEntry>& entries() const { return entries_; }
 
+    /* IOKit-style class match */
     std::vector<const RegistryEntry*> matching(const std::string &className) const {
         std::vector<const RegistryEntry*> out;
         for (auto &e : entries_)
             if (e.className == className) out.push_back(&e);
+        return out;
+    }
+
+    /* IOKit-style property predicate: match class AND every key/value pair. */
+    std::vector<const RegistryEntry*> matching(
+            const std::string &className,
+            const std::map<std::string, std::string> &props) const {
+        std::vector<const RegistryEntry*> out;
+        for (auto &e : entries_) {
+            if (!className.empty() && e.className != className) continue;
+            bool ok = true;
+            for (auto &kv : props) {
+                auto it = e.props.find(kv.first);
+                if (it == e.props.end() || it->second != kv.second) { ok = false; break; }
+            }
+            if (ok) out.push_back(&e);
+        }
         return out;
     }
 
