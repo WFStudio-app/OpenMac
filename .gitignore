@@ -19,3 +19,4 @@ osfmk/test_cpp
 osfmk/ioreg_cpp
 osfmk/libopenmachcpp.so
 osfmk/cpp/*.o
+osfmk/test_task
