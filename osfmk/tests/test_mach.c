@@ -10,7 +10,7 @@ int main(void) {
     /* host info */
     mach_port_t host; struct host_basic_info hi;
     if (omach_host_self(&host) != KERN_SUCCESS ||
-        omach_host_info(host, 0, &hi) != KERN_SUCCESS || hi.memory_size == 0) {
+        omach_host_info(host, HOST_BASIC_INFO, &hi) != KERN_SUCCESS || hi.memory_size == 0) {
         puts("FAIL host_info"); fails++;
     } else printf("ok host_info: cpus=%u mem=%lluMB\n", hi.max_cpus,
                   (unsigned long long)(hi.memory_size >> 20));

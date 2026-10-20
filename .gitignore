@@ -13,3 +13,5 @@ libopenmach.so
 # build artifacts
 osfmk/*.o
 osfmk/test_mach
+osfmk/test_stress
+osfmk/test_stress_*

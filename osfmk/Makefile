@@ -17,8 +17,14 @@ libopenmach.so: $(LIB_OBJS)
 test_mach: tests/test_mach.c mach.h libopenmach.so
 	$(CC) $(CFLAGS) -o $@ tests/test_mach.c -L. -lopenmach -Wl,-rpath,$(CURDIR)
 
+test_stress: tests/test_stress.c mach.h libopenmach.so
+	$(CC) $(CFLAGS) -o $@ tests/test_stress.c -L. -lopenmach -Wl,-rpath,$(CURDIR)
+
 test: all test_mach
 	./test_mach
+
+stress: all test_stress
+	OMAC_IPC_DIR=$${OMAC_IPC_DIR:-/tmp/omach-stress-ipc} ./test_stress $${STRESS_SECONDS:-60}
 
 install: all
 	mkdir -p $(PREFIX)/lib $(PREFIX)/include
@@ -26,6 +32,6 @@ install: all
 	cp mach.h $(PREFIX)/include/
 
 clean:
-	rm -f *.o libopenmach.so test_mach
+	rm -f *.o libopenmach.so test_mach test_stress
 
-.PHONY: all test install clean
+.PHONY: all test install clean stress

@@ -21,8 +21,8 @@ kern_return_t omach_host_self(mach_port_t *host) {
 
 kern_return_t omach_host_info(mach_port_t host, natural_t flavor,
                               struct host_basic_info *info) {
-    (void)host; (void)flavor;
-    if (!info) return KERN_FAILURE;
+    (void)host;
+    if (!info || flavor != HOST_BASIC_INFO) return KERN_FAILURE;
     long ncpu = sysconf(_SC_NPROCESSORS_ONLN);
     struct sysinfo si;
     if (sysinfo(&si) != 0) return KERN_FAILURE;
@@ -36,6 +36,9 @@ kern_return_t omach_vm_allocate(mach_port_t target, uint64_t *addr,
                                 uint64_t size, vm_prot_t prot) {
     (void)target;
     if (!addr || !size) return KERN_FAILURE;
+    /* Darwin ABI: VM_PROT_NONE (0) is not "no permissions" but "default
+     * protections" (READ|WRITE). Mirror vm_map behaviour exactly. */
+    if (prot == VM_PROT_NONE) prot = VM_PROT_DEFAULT;
     int flags = PROT_READ;
     if (prot & VM_PROT_WRITE)   flags |= PROT_WRITE;
     if (prot & VM_PROT_EXECUTE) flags |= PROT_EXEC;
@@ -45,11 +48,25 @@ kern_return_t omach_vm_allocate(mach_port_t target, uint64_t *addr,
     return KERN_SUCCESS;
 }
 
+kern_return_t omach_vm_deallocate(mach_port_t target, uint64_t addr,
+                                  uint64_t size) {
+    (void)target;
+    if (!addr || !size) return KERN_FAILURE;
+    /* Mach semantics: deallocating a region we never mapped must fail.
+     * vm_region reports the mapping; ENOENT from munmap alone is not enough
+     * of a guard against double-free, so validate with mincore-style probe. */
+    unsigned char vec = 0;
+    if (mincore((void *)(uintptr_t)(addr & ~(uint64_t)0xfff), 4096, &vec) != 0)
+        return KERN_FAILURE; /* no live mapping at addr -> invalid right */
+    if (munmap((void *)(uintptr_t)addr, size) != 0) return KERN_FAILURE;
+    return KERN_SUCCESS;
+}
+
 kern_return_t omach_task_for_pid(mach_port_t host, int32_t pid,
                                  mach_port_t *task) {
     (void)host;
     if (!task) return KERN_FAILURE;
     if (kill(pid, 0) != 0) return MACH_SEND_INVALID_DEST;
-    *task = ((uint64_t)pid << 8) | (++g_port_counter & 0xff);
+    *task = (mach_port_t)(uint32_t)pid; /* synthetic name == pid (like bsd ppid naming) */
     return KERN_SUCCESS;
 }

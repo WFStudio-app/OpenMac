@@ -15,22 +15,29 @@
 #define _OPENMACH_MACH_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <sys/types.h>
 
 /* ---- Mach basic types (Darwin ABI-compatible spellings) ---- */
 typedef int32_t  kern_return_t;
 typedef uint32_t natural_t;
-typedef uint64_t mach_port_name_t;
-typedef uint64_t mach_port_t;
+typedef uint32_t mach_port_name_t;
+typedef uint32_t mach_port_t;
 typedef int32_t  vm_prot_t;
 
 #define KERN_SUCCESS            0
 #define KERN_FAILURE            1
 #define MACH_SEND_INVALID_DEST  0x10000003
 
+#define VM_PROT_NONE    0x00
 #define VM_PROT_READ    0x01
 #define VM_PROT_WRITE   0x02
 #define VM_PROT_EXECUTE 0x04
+/* Darwin semantics: prot == VM_PROT_NONE means "use default protections" */
+#define VM_PROT_DEFAULT (VM_PROT_READ | VM_PROT_WRITE)
+
+/* host_info flavors (Darwin-compatible spellings) */
+#define HOST_BASIC_INFO 1
 
 /* ---- Host / processor info ---- */
 struct host_basic_info {
@@ -45,6 +52,8 @@ kern_return_t omach_host_info(mach_port_t host, natural_t flavor,
                               struct host_basic_info *info);
 kern_return_t omach_vm_allocate(mach_port_t target, uint64_t *addr,
                                 uint64_t size, vm_prot_t prot);
+kern_return_t omach_vm_deallocate(mach_port_t target, uint64_t addr,
+                                  uint64_t size);
 kern_return_t omach_task_for_pid(mach_port_t host, int32_t pid,
                                  mach_port_t *task);
 

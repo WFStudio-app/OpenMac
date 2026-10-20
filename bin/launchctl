@@ -72,12 +72,20 @@ cmd_run() { # run all jobs marked KeepAlive=yes (boot-like pass)
   done
 }
 
+cmd_kickstart() { # restart a running (or stopped) job in place
+  local label="${1:?usage: launchctl kickstart <label>}"
+  [[ -f "$JOBS_DIR/$label" ]] || { echo "launchctl: unknown job: $label" >&2; exit 1; }
+  cmd_stop "$label" >/dev/null 2>&1 || true
+  cmd_start "$label"
+}
+
 case "${1:-help}" in
   load)   shift; cmd_load "$@";;
   unload) shift; cmd_unload "$@";;
   list)   cmd_list;;
   start)  shift; cmd_start "$@";;
   stop)   shift; cmd_stop "$@";;
+  kickstart) shift; cmd_kickstart "$@";;
   run)    cmd_run;;
-  help|*) echo "launchctl-lite: load|unload|list|start|stop|run";;
+  help|*) echo "launchctl-lite: load|unload|list|start|stop|kickstart|run";;
 esac

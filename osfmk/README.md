@@ -21,6 +21,8 @@
   (`port_allocate/connect`, `msg_send/recv`, каталог `$OMAC_IPC_DIR`).
 - `bsd/kern_osmacro.c` — отчёт о версии в стиле Darwin (бэкенд `sw_vers`).
 - `tests/test_mach.c` — смоук-тест библиотеки.
+- `tests/test_stress.c` — стресс/стабильность-тест (6 фаз: host-API, VM-churn, исчерпание портов, IPC roundtrip, конкурентный IPC, watchdog таймаутов). Сборка и запуск: `make stress STRESS_SECONDS=60`.
+
 
 ## Сборка и проверка
 ```sh
