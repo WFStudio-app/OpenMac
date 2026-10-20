@@ -39,6 +39,17 @@ typedef int32_t  vm_prot_t;
 /* host_info flavors (Darwin-compatible spellings) */
 #define HOST_BASIC_INFO 1
 
+/* thread_state flavor (x86_64-style register window; portable subset) */
+#define OM_THREAD_STATE_BASIC 1
+
+struct om_thread_basic_state {
+    uint64_t pc;        /* rip/eip equivalent            */
+    uint64_t sp;        /* rsp                           */
+    uint64_t bp;        /* rbp                           */
+    uint64_t r[13];     /* rax,rbx,rcx,rdx,rsi,rdi,r8..r12 */
+    uint32_t gs, fs;
+};
+
 /* ---- Host / processor info ---- */
 struct host_basic_info {
     natural_t max_cpus;
@@ -56,6 +67,16 @@ kern_return_t omach_vm_deallocate(mach_port_t target, uint64_t addr,
                                   uint64_t size);
 kern_return_t omach_task_for_pid(mach_port_t host, int32_t pid,
                                  mach_port_t *task);
+
+/* ---- task / thread introspection (Darwin-style names over Linux) ---- */
+kern_return_t omach_threads(mach_port_t task, mach_port_t *list,
+                            uint32_t *count);
+kern_return_t omach_thread_suspend(mach_port_t thread);
+kern_return_t omach_thread_resume(mach_port_t thread);
+kern_return_t omach_thread_get_state(mach_port_t thread, natural_t flavor,
+                                     struct om_thread_basic_state *state);
+kern_return_t omach_vm_region(mach_port_t target, uint64_t *addr,
+                              uint64_t *size, vm_prot_t *prot);
 
 /* ---- Mach-style IPC over UNIX domain sockets (mach_ipc.c) ---- */
 #include <stddef.h>
