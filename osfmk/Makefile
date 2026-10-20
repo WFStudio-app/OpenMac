@@ -5,7 +5,7 @@ CFLAGS  ?= -O2 -Wall -fPIC
 CXXFLAGS?= -O2 -Wall -fPIC -std=c++17
 PREFIX  ?= $(HOME)/.omac
 
-LIB_SRCS = mach_shim.c mach_ipc.c
+LIB_SRCS = mach_shim.c mach_ipc.c mach_task.c
 LIB_OBJS = $(LIB_SRCS:.c=.o)
 CPP_LIB_SRC = cpp/OMKernel.cpp
 CPP_LIB_OBJ = $(CPP_LIB_SRC:.cpp=.o)
