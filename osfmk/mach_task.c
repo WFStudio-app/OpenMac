@@ -14,6 +14,27 @@
 #include <signal.h>
 #include <unistd.h>
 
+/* glibc's kill(pid, SIGSTOP) delivers *synchronously* to the calling
+ * process for its own main thread — before we can return KERN_SUCCESS.
+ * Block SIGSTOP around self-targeted suspend so the call fails cleanly
+ * instead of freezing the caller (Mach: suspending yourself is invalid). */
+static int stop_sigset_blocked(void) {
+    sigset_t s;
+    sigemptyset(&s);
+    sigaddset(&s, SIGSTOP);
+    /* pthread_sigmask would be more correct in multithread code; the shim
+     * API is per-thread but sigprocmask in a threaded program applies to
+     * the whole process — acceptable here because we only block SIGSTOP
+     * for the duration of one signal attempt and then restore. */
+    return sigprocmask(SIG_BLOCK, &s, NULL);
+}
+static void stop_sigset_restore(void) {
+    sigset_t s;
+    sigemptyset(&s);
+    sigaddset(&s, SIGSTOP);
+    sigprocmask(SIG_UNBLOCK, &s, NULL);
+}
+
 /* Synthetic thread name == LWP id (TID). Task port name == pid
  * (matches omach_task_for_pid naming in mach_shim.c). */
 
@@ -42,31 +63,36 @@ kern_return_t omach_threads(mach_port_t task, mach_port_t *list,
     return KERN_SUCCESS;
 }
 
-static int thread_kill(mach_port_t thread, int sig) {
-    /* A synthetic thread name is a TID; tgkill-equivalent via syscall on
-     * Android bionic and glibc alike: kill(tid) targets the thread group
-     * leader only, so use tkill semantics through syscall(2) when available. */
-    if (thread == 0 || thread == (mach_port_t)getpid()) {
-        /* main thread == process: fall back to SIGSTOP/CONT on pid */
-        return kill((pid_t)thread, sig);
-    }
-#ifdef __NR_tgkill
+/* Darwin semantics: suspending the *calling* thread deadlocks it forever
+ * inside the kernel; we cannot reproduce that safely in userspace, so we
+ * report failure instead of SIGSTOP-ing our own process/thread. */
+static int is_self_thread(mach_port_t thread) {
+    if (thread == (mach_port_t)getpid()) return 1;
+#ifdef __NR_gettid
     extern long int syscall(long, ...);
-    return syscall(__NR_tgkill, (int)getpid(), (int)thread, sig);
-#else
-    return kill((pid_t)thread, sig);
+    if (thread == (mach_port_t)syscall(__NR_gettid)) return 1;
 #endif
+    return 0;
 }
 
 kern_return_t omach_thread_suspend(mach_port_t thread) {
     if (!thread) return KERN_FAILURE;
-    if (thread_kill(thread, SIGSTOP) != 0) return KERN_FAILURE;
+    int self = is_self_thread(thread);
+    if (self && stop_sigset_blocked() != 0) return KERN_FAILURE;
+    int rc = kill((pid_t)thread, SIGSTOP);
+    if (self) {
+        /* If we are still running, the signal was blocked/ignored —
+         * restore the mask so future legitimate suspends work. */
+        stop_sigset_restore();
+        return KERN_FAILURE; /* Mach: cannot suspend self */
+    }
+    if (rc != 0) return KERN_FAILURE;
     return KERN_SUCCESS;
 }
 
 kern_return_t omach_thread_resume(mach_port_t thread) {
     if (!thread) return KERN_FAILURE;
-    if (thread_kill(thread, SIGCONT) != 0) return KERN_FAILURE;
+    if (kill((pid_t)thread, SIGCONT) != 0) return KERN_FAILURE;
     return KERN_SUCCESS;
 }
 
