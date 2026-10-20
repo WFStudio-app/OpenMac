@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# ioreg — Darwin-flavoured IORegistry printer backed by the OpenMac C++
+# IOKit module (registry snapshot over sysfs). Termux path: shebang above;
+# original: #!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+OMAC_HOME="${OMAC_PREFIX:-$HOME/.omac}"
+BIN="$OMAC_HOME/libexec/ioreg_cpp"
+if [ -x "$BIN" ]; then exec "$BIN" "$@"; fi
+# Fallback: pure-bash printer with the same output shape.
+filter="${1:-}"
+print_class() {
+  local cls="$1" id="$2"; shift 2
+  echo "+-o $id  <$cls>"
+}
+for d in /sys/devices/system/cpu/cpu[0-9]*; do
+  [ -d "$d" ] || continue
+  b=$(basename "$d")
+  [ -z "$filter" ] || [[ "$b" == *"$filter"* ]] || continue
+  print_class IOPowerManagementCPU "$b"
+done
+if [ -d /sys/bus/pci/devices ]; then
+  for d in /sys/bus/pci/devices/*; do
+    b=$(basename "$d")
+    [ -z "$filter" ] || [[ "$b" == *"$filter"* ]] || continue
+    print_class IOPCIDevice "$b"
+  done
+fi
+for d in /sys/block/*; do
+  [ -d "$d" ] || continue
+  b=$(basename "$d")
+  [ -z "$filter" ] || [[ "$b" == *"$filter"* ]] || continue
+  print_class IOMedia "$b"
+done
+exit 0

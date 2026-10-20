@@ -15,3 +15,7 @@ osfmk/*.o
 osfmk/test_mach
 osfmk/test_stress
 osfmk/test_stress_*
+osfmk/test_cpp
+osfmk/ioreg_cpp
+osfmk/libopenmachcpp.so
+osfmk/cpp/*.o

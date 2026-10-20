@@ -32,3 +32,22 @@ make -C osfmk install  # в ~/.omac/lib + ~/.omac/include
 ../tools/sysctl_darwin.sh -a   # darwin-style sysctl поверх /proc
 ../tools/sw_vers_darwin.sh     # sw_vers-совместимый вывод
 ```
+
+
+## C++ modules (osfmk/cpp/)
+
+Header-mostly C++17 layer over the C shim:
+
+- `OMKernel.hpp/.cpp` — RAII wrappers: `omac::MachPort`, `omac::Host`,
+  `omac::VMRegion`, `omac::SystemVersion`, `omac::ProcessInfo`,
+  `omac::KernelError` (kern_return -> exception).
+- `OMIOKit.hpp` — IOKit-flavoured device registry (`Registry::scan()`)
+  built over Linux sysfs (CPU / PCI / block nodes).
+- `OMLaunchd.hpp` — launchd-style job manager (parse/start/stop/isRunning).
+- `ioreg_main.cpp` — builds `ioreg_cpp`, the backend for `bin/ioreg`.
+
+Build & test:
+
+    make -C osfmk all      # libopenmach.so + libopenmachcpp.so + ioreg_cpp
+    make -C osfmk test     # C smoke test + C++ module tests
+    make -C osfmk install  # installs libs, headers and libexec/ioreg_cpp
