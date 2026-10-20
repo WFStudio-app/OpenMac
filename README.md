@@ -69,7 +69,15 @@ omac --version
 
 ## Статус проекта
 
-🚧 Активная разработка. Ядро уже работает, большинство формул портируются.
+🚧 Активная разработка. Userspace-shim (Mach-style API поверх Linux) собирается и проходит смоук- и стресс-тесты; продолжается портирование формул.
+
+## Документация
+
+- [CHANGELOG.md](CHANGELOG.md) — история изменений
+- [docs/architecture.md](docs/architecture.md) — архитектура шима
+- [docs/building.md](docs/building.md) — сборка и установка
+- [docs/api.md](docs/api.md) — справочник по `mach.h` и C++ слою
+- [docs/usage.md](docs/usage.md) — использование CLI-утилит
 
 ## Атрибуция
 
