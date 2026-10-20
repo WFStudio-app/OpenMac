@@ -17,9 +17,8 @@
 #include <stdexcept>
 #include <memory>
 
-extern "C" {
+// mach.h already provides extern "C" linkage guards
 #include "../mach.h"
-}
 
 namespace omac {
 
