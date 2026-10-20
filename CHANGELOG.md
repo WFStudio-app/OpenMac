@@ -1,0 +1,51 @@
+# Changelog
+
+All notable changes to OpenMac are documented in this file.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+### Added
+- C++ module layer (`osfmk/cpp`): `OMKernel.hpp` RAII wrappers over the Mach shim,
+  `OMIOKit.hpp` sysfs-backed device registry, `OMLaunchd.hpp` job manager, and the
+  `ioreg_cpp` tool; built into `libopenmachcpp.so`.
+- `IOPPlatform` registry node in `OMIOKit::Registry::scan()` exposing ostype,
+  osrelease, hostname and page size from `/proc`.
+- IOKit-style property predicate overload `matching(className, props)` in
+  `OMIOKit.hpp`.
+- Task/thread introspection shim (`mach_task.c`): `omach_threads` over
+  `/proc/<pid>/task`, thread-state flavors, VM region walk; SIGSTOP is blocked
+  around self-targeted suspend so callers cannot freeze themselves.
+- `extern "C"` guards in `mach.h` for direct inclusion from C++.
+- Stress suite `tests/test_stress.c`: six phases (host API churn, VM allocate/free
+  cycles, port exhaustion + recovery, IPC roundtrip, 16-way fork-concurrent IPC,
+  recv watchdog) with fd/RSS leak detectors; wired as `make stress STRESS_SECONDS=N`.
+- IPC deadlock fix: loopback send-to-self ports use split read/write fds; stale
+  socket files are unlinked before bind; `recv` uses a poll timeout matching
+  `MACH_RCV_TIMED_OUT` semantics.
+- Test isolation via `OM_IPC_DIR` environment override so repeated test runs do
+  not collide on leftover sockets.
+- Documentation: `CHANGELOG.md`, `docs/architecture.md`, `docs/building.md`,
+  `docs/api.md`, `docs/usage.md`.
+
+### Changed
+- `launchctl` rewritten: full `load | unload | list | start | stop | run` with
+  plist-like job parsing (`Program=`, `ProgramArguments=`, `KeepAlive=`) and PID
+  tracking in the state directory.
+- `sw_vers` now Darwin-compatible (`-productName`, `-productVersion`,
+  `-buildVersion`) backed by `kern_osmacro.c`.
+- `install.sh` auto-builds and installs `libopenmach.so` + headers into
+  `~/.omac`, sets `LD_LIBRARY_PATH`; shebangs switched to `#!/usr/bin/env bash`.
+- LICENSE replaced with proprietary "All Rights Reserved" notice; APSL 2.0 text
+  kept separately (`LICENSE.APSL`) as reference only — no XNU source is used.
+
+### Fixed
+- SEGFAULT in stress phase 2: `omach_vm_allocate` now defaults to
+  `PROT_READ|PROT_WRITE` when prot mask is 0.
+- Double `munmap` / double dealloc in VM shim; `mach_port_t` ABI mismatch.
+- Hanging `accept` in IPC connect path (timeout added).
+
+## [0.1.0]
+- Initial Darwin-style userspace shim: Mach-flavoured API (`host_self`,
+  `host_info`, `vm_allocate`, `task_for_pid`) over Linux syscalls, `sysctl`
+  frontend with Darwin MIB names, Termux-oriented installer and package layout.
