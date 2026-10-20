@@ -21,6 +21,24 @@ kern_return_t omach_vm_deallocate(mach_port_t target, uint64_t addr,
                                   uint64_t size);   /* munmap-backed */
 kern_return_t omach_vm_region(mach_port_t target, uint64_t *addr, ...);
     /* walks /proc/self/maps */
+
+kern_return_t omach_host_sched_info(mach_port_t host, natural_t flavor,
+                                    struct host_sched_info *info);
+    /* HOST_SCHED_INFO: min_timeout = CLOCK_MONOTONIC granularity (us),
+       max_cpus = _SC_NPROCESSORS_CONF. */
+
+kern_return_t omach_host_processor_counts(mach_port_t host,
+                                          natural_t *count, uint32_t max);
+kern_return_t omach_processor_info(mach_port_t host, natural_t id,
+                                   natural_t flavor,
+                                   struct processor_basic_info *info);
+    /* PROCESSOR_BASIC_INFO: cpu_type (7=x86, 12=ARM), brand string from
+       /proc/cpuinfo with uname -m fallback; slots are 0..N-1 online CPUs. */
+
+uint64_t omach_mach_absolute_time(void);
+    /* CLOCK_MONOTONIC in nanoseconds */
+kern_return_t omach_mach_timebase_info(struct mach_timebase_info *info);
+    /* numer/denom = 1/1: ticks already are ns */
 ```
 
 ## Task & threads

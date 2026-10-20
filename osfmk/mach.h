@@ -42,6 +42,13 @@ typedef int32_t  vm_prot_t;
 
 /* host_info flavors (Darwin-compatible spellings) */
 #define HOST_BASIC_INFO 1
+#define HOST_SCHED_INFO 3
+
+/* ---- Host scheduler info (Darwin host_sched_info_t spelling) ---- */
+struct host_sched_info {
+    natural_t min_timeout;   /* finest clock granularity, microseconds */
+    natural_t max_cpus;      /* maximum CPUs usable by this host */
+};
 
 /* thread_state flavor (x86_64-style register window; portable subset) */
 #define OM_THREAD_STATE_BASIC 1
@@ -61,16 +68,51 @@ struct host_basic_info {
     uint64_t  memory_size;
 };
 
+/* processor_flavor_t (Darwin x86 spelling, portable subset) */
+#define PROCESSOR_INFO_MAX       1024
+#define PROCESSOR_BASIC_INFO     1
+struct processor_basic_info {
+    natural_t cpu_type;     /* CPU_TYPE_*, e.g. ARM=12 x86=7 */
+    natural_t cpu_subtype;
+    natural_t cpu_family;
+    char      brand_string[64]; /* truncated vs Darwin's 32*4 chars */
+};
+
+/* CPU type spellings (mach/machine.h) */
+#define OM_CPU_TYPE_X86   7
+#define OM_CPU_TYPE_ARM   12
+#define OM_CPU_SUBTYPE_ARM64_ALL 0
+
+/* ---- Absolute time units (mach/mach_time.h) ---- */
+struct mach_timebase_info {
+    uint32_t numer;
+    uint32_t denom;
+};
+
+/* ---- sysctl-compatible errno spellings (Darwin <sys/errno.h>) ---- */
+#define OM_ENOTSUP 45   /* operation not supported (Darwin ENOTSUP value) */
+
 /* ---- API surface implemented by libopenmach.so over Linux syscalls ---- */
 kern_return_t omach_host_self(mach_port_t *host);
 kern_return_t omach_host_info(mach_port_t host, natural_t flavor,
                               struct host_basic_info *info);
+kern_return_t omach_host_sched_info(mach_port_t host, natural_t flavor,
+                                    struct host_sched_info *info);
 kern_return_t omach_vm_allocate(mach_port_t target, uint64_t *addr,
                                 uint64_t size, vm_prot_t prot);
 kern_return_t omach_vm_deallocate(mach_port_t target, uint64_t addr,
                                   uint64_t size);
 kern_return_t omach_task_for_pid(mach_port_t host, int32_t pid,
                                  mach_port_t *task);
+
+/* ---- processor info + absolute time (mach_shim.c) ---- */
+kern_return_t omach_host_processor_counts(mach_port_t host,
+                                          natural_t *count, uint32_t max);
+kern_return_t omach_processor_info(mach_port_t host, natural_t id,
+                                   natural_t flavor,
+                                   struct processor_basic_info *info);
+uint64_t      omach_mach_absolute_time(void);
+kern_return_t omach_mach_timebase_info(struct mach_timebase_info *info);
 
 /* ---- task / thread introspection (Darwin-style names over Linux) ---- */
 kern_return_t omach_threads(mach_port_t task, mach_port_t *list,

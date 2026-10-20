@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Kernel core expansion: `omach_host_sched_info` (Darwin `host_sched_info`
+  flavor over `clock_getres`), `omach_host_processor_counts` +
+  `omach_processor_info` (`host_processor_info` family with CPU type/brand
+  from `/proc/cpuinfo` and uname fallback), and the absolute-time unit API
+  `omach_mach_absolute_time` / `omach_mach_timebase_info` backed by
+  `CLOCK_MONOTONIC` at native ns resolution (timebase 1/1). New Darwin
+  spellings in `mach.h`: `HOST_SCHED_INFO`, `PROCESSOR_BASIC_INFO`,
+  `OM_CPU_TYPE_*`, `struct mach_timebase_info`. Covered by new cases in
+  `tests/test_mach.c`.
 - C++ module layer (`osfmk/cpp`): `OMKernel.hpp` RAII wrappers over the Mach shim,
   `OMIOKit.hpp` sysfs-backed device registry, `OMLaunchd.hpp` job manager, and the
   `ioreg_cpp` tool; built into `libopenmachcpp.so`.
