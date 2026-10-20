@@ -18,6 +18,10 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ---- Mach basic types (Darwin ABI-compatible spellings) ---- */
 typedef int32_t  kern_return_t;
 typedef uint32_t natural_t;
@@ -87,5 +91,9 @@ kern_return_t omach_msg_send(mach_port_t name, const void *buf, size_t len);
 kern_return_t omach_msg_recv(mach_port_t name, void *buf, size_t maxlen,
                              size_t *out_len);
 kern_return_t omach_port_deallocate(mach_port_t name);
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif /* _OPENMACH_MACH_H */
