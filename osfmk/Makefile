@@ -33,11 +33,15 @@ test_mach: tests/test_mach.c mach.h libopenmach.so
 test_stress: tests/test_stress.c mach.h libopenmach.so
 	$(CC) $(CFLAGS) -o $@ tests/test_stress.c -L. -lopenmach -Wl,-rpath,$(CURDIR)
 
+test_task: tests/test_task.c mach.h libopenmach.so
+	$(CC) $(CFLAGS) -o $@ tests/test_task.c -L. -lopenmach -Wl,-rpath,$(CURDIR) -lpthread
+
 test_cpp: tests/test_cpp.cpp $(CPP_LIB_OBJ) libopenmach.so
 	$(CXX) $(CXXFLAGS) -o $@ tests/test_cpp.cpp $(CPP_LIB_OBJ) -L. -lopenmach -Wl,-rpath,$(CURDIR)
 
-test: all test_mach test_cpp
-	./test_mach
+test: all test_mach test_task test_cpp
+	OMAC_IPC_DIR=$${OMAC_IPC_DIR:-/tmp/omach-test} ./test_mach
+	OMAC_IPC_DIR=$${OMAC_IPC_DIR:-/tmp/omach-test} ./test_task
 	./test_cpp
 
 stress: all test_stress
@@ -51,6 +55,6 @@ install: all
 	cp ioreg_cpp $(PREFIX)/libexec/
 
 clean:
-	rm -f *.o libopenmach.so libopenmachcpp.so test_mach test_stress test_cpp ioreg_cpp cpp/*.o
+	rm -f *.o libopenmach.so libopenmachcpp.so test_mach test_stress test_task test_cpp ioreg_cpp cpp/*.o
 
 .PHONY: all test install clean stress
