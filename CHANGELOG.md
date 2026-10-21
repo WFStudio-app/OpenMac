@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- `install.sh`: `~/.omac/env` is now always a regular file. Older installers
+  created an `env/` **directory** inside the prefix, which broke
+  `source ~/.omac/env` with "is a directory". The installer removes any stale
+  `env` directory before writing the file, and self-heals a broken live
+  `~/.omac` layout on re-run (bin + env restored) so existing installs are
+  fixed without manual cleanup.
+- Calculator: accept `--expr EXPR` as an alias of `-e`/`--eval` for one-shot
+  evaluation.
+
 ### Added
 - Terminal apps layer (`apps/`): first app **Calculator.app** — macOS-style
   calculator for the terminal: interactive REPL (Basic + `--sci` Scientific
@@ -13,6 +23,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   formatting (integers without trailing `.0`). Built by `install.sh`, binary
   exposed as `calculator` in `$OMAC_PREFIX/bin`. 31 unit tests
   (`apps/Calculator/tests/run_tests.sh`).
+- **Stickies.app** — terminal port of the classic sticky notes: notes stored
+  as `NAME.text` + `NAME.meta` under `~/.omac/Stickies/notes/`, seven macOS
+  colours (yellow/pink/blue/green/orange/white/purple) rendered with ANSI,
+  commands `new/add/show/list/open/edit/rm/clear/color/move`, stdin piping,
+  auto-naming, TTY-safe interactive browser. 24 unit tests
+  (`apps/Stickies/tests/run_tests.sh`).
 - `install.sh`: builds every `apps/*/Makefile` target and installs produced
   ELF binaries into `$PREFIX/bin` (non-fatal on failure).
 - Kernel core expansion: `omach_host_sched_info` (Darwin `host_sched_info`

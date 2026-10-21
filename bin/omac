@@ -1,4 +1,4 @@
-#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # omac - OpenMac package manager ( rewritten for Termux )
 # Inspired by Homebrew CLI, but uses Termux pkg/apt under the hood.
 # License: proprietary (see LICENSE). Original brew ideas: BSD-2 (Homebrew team).

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # pbcopy - copy stdin to Android clipboard via termux-api (reimplementation of macOS tool)
 if command -v termux-clipboard-set >/dev/null 2>&1; then
   termux-clipboard-set "$(cat)"

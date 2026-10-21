@@ -10,7 +10,10 @@ REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 PREFIX="${OMAC_PREFIX:-$HOME/.omac}"
 
 echo "==> Installing OpenMac into $PREFIX"
-mkdir -p "$PREFIX"/{bin,packages,env}
+# Clean up broken layout from older installers: ~/.omac/env must be a FILE.
+if [ -d "$PREFIX/env" ]; then rm -rf "$PREFIX/env"; fi
+if [ -e "$PREFIX/env" ] && [ ! -f "$PREFIX/env" ]; then rm -f "$PREFIX/env"; fi
+mkdir -p "$PREFIX"/{bin,packages}
 
 cp -r "$REPO_DIR"/bin/* "$PREFIX/bin/"
 cp -r "$REPO_DIR"/packages/* "$PREFIX/packages/" 2>/dev/null || true
@@ -55,6 +58,24 @@ ENV
 
 if ! grep -q "OPENMAC_HOME" "$HOME/.bashrc" 2>/dev/null; then
   echo '[ -f "$HOME/.omac/env" ] && source "$HOME/.omac/env"' >> "$HOME/.bashrc"
+fi
+
+# Self-heal a broken environment from older installers: if the user's live
+# ~/.omac/env is a directory, repair it right now so plain `source ~/.omac/env`
+# works without re-running install.sh manually.
+LIVE_PREFIX="$HOME/.omac"
+if [ "$LIVE_PREFIX" != "$PREFIX" ] && [ -d "$LIVE_PREFIX/env" ]; then
+  echo "==> Repairing broken $LIVE_PREFIX/env (was a directory)..."
+  rm -rf "$LIVE_PREFIX/env"
+  cp -r "$REPO_DIR"/bin/* "$LIVE_PREFIX/bin/" 2>/dev/null || mkdir -p "$LIVE_PREFIX/bin" && cp -r "$REPO_DIR"/bin/* "$LIVE_PREFIX/bin/"
+  chmod +x "$LIVE_PREFIX"/bin/* 2>/dev/null || true
+  cat > "$LIVE_PREFIX/env" <<ENV2
+export OPENMAC_HOME="$LIVE_PREFIX"
+export OPENMAC_PACKAGES="$LIVE_PREFIX/packages"
+export OPENMAC_REPO="$REPO_DIR"
+export PATH="$LIVE_PREFIX/bin:\$PATH"
+export LD_LIBRARY_PATH="$LIVE_PREFIX/lib\${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+ENV2
 fi
 
 echo "==> Done. Run: source ~/.omac/env && omac --version"

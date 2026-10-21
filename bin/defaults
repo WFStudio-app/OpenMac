@@ -1,4 +1,4 @@
-#!/usr/bin/env bash  # Termux: /data/data/com.termux/files/usr/bin/bash
+#!/usr/bin/env bash
 # defaults - emulate macOS `defaults` using JSON files in ~/Library/Preferences
 # Rewritten for Termux. Storage: $HOME/Library/Preferences/<domain>.json
 set -euo pipefail

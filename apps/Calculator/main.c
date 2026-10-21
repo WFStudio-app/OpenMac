@@ -222,7 +222,7 @@ static void usage(void) {
 int main(int argc, char **argv) {
     if (argc >= 2) {
         if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")) { usage(); return 0; }
-        if (!strcmp(argv[1], "-e") || !strcmp(argv[1], "--eval")) {
+        if (!strcmp(argv[1], "-e") || !strcmp(argv[1], "--eval") || !strcmp(argv[1], "--expr")) {
             if (argc < 3) { fprintf(stderr, "calculator: -e needs an expression\n"); return 1; }
             /* join remaining args so `calculator -e 2 + 2` also works */
             char joined[2048]; 
