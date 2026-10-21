@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Terminal apps layer (`apps/`): first app **Calculator.app** — macOS-style
+  calculator for the terminal: interactive REPL (Basic + `--sci` Scientific
+  modes), one-shot `-e EXPR`, persistent history in `~/.omac/Calculator/history`
+  with `--history [n]` / `--clear-history`, last-answer `_`, Darwin number
+  formatting (integers without trailing `.0`). Built by `install.sh`, binary
+  exposed as `calculator` in `$OMAC_PREFIX/bin`. 31 unit tests
+  (`apps/Calculator/tests/run_tests.sh`).
+- `install.sh`: builds every `apps/*/Makefile` target and installs produced
+  ELF binaries into `$PREFIX/bin` (non-fatal on failure).
 - Kernel core expansion: `omach_host_sched_info` (Darwin `host_sched_info`
   flavor over `clock_getres`), `omach_host_processor_counts` +
   `omach_processor_info` (`host_processor_info` family with CPU type/brand

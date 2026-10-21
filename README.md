@@ -17,7 +17,9 @@ OpenMac — это проект, цель которого принести ма
 ```
 OpenMac/
 ├── bin/            # Переписанные CLI-утилиты (brew-совместимый менеджер, say, open...)
+├── apps/           # Терминальные приложения macOS (Calculator.app и др.)
 ├── lib/            # Общие библиотеки для Termux (bionic, proot, pkg)
+├── osfmk/          # Darwin-shim ядра (mach.h / libopenmach.so поверх Linux)
 ├── etc/            # Конфиги в стиле macOS (defaults, launchd-lite)
 ├── packages/       # Рецепты "формулы" для установки пакетов в Termux
 ├── scripts/        # Инсталлеры и хуки окружения
